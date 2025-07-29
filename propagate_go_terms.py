@@ -22,7 +22,7 @@ def filter_gaf_by_proteins(
 ) -> pd.DataFrame:
     """
     Read a GAF file in chunks. If proteins is provided, filter to those proteins;
-    otherwise include all entries. Always show a progress bar and timing.
+    otherwise include all entries. Show a progress bar and timing.
     Returns DataFrame with columns: ['DB_Object_ID','GO_ID','Aspect'].
     """
     start = time.time()
@@ -56,9 +56,9 @@ def load_deepfri_predictions(
 ) -> pd.DataFrame:
     """
     Load all CSVs matching `pattern` for deepFRI predictions.
-    Skips lines starting with '#'. Keeps original term name and aspect.
+    Skips weird deepFRI header with '###'. Keeps original term name and aspect.
     If id_from_filename=True, overrides the 'protein' column using the filename.
-    Optionally filter by score_cutoff. Always show timing.
+    Optionally filter by score_cutoff.
     Returns DataFrame with ['protein','GO_ID','score','orig_name','aspect'].
     """
     start = time.time()
@@ -99,7 +99,6 @@ def build_ancestor_map(
 ) -> pd.DataFrame:
     """
     Build ancestor mapping DataFrame: columns ['GO_ID','ancestor','aspect','term_name'].
-    Always show progress bar and timing.
     """
     start = time.time()
     records = []
@@ -125,7 +124,6 @@ def propagate_gaf(
 ) -> pd.DataFrame:
     """
     Propagate GAF terms: merge with ancestor_map, dedupe, add optional IC and term_name.
-    Always show timing.
     Returns DataFrame with ['protein','go_term','go_name','aspect'] plus 'IC' if provided.
     """
     start = time.time()
@@ -148,7 +146,6 @@ def propagate_deepfri(
     """
     Propagate deepFRI predictions: merge with ancestor_map, aggregate by max score,
     add ancestor term_name and optional IC.
-    Always show timing.
     Returns DataFrame with ['protein','go_term','go_name','aspect','score'] plus 'IC' if provided.
     """
     start = time.time()
@@ -167,12 +164,12 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser("Propagate GO terms for GAF or deepFRI")
-    parser.add_argument('--mode', choices=['gaf','pred','both'], default='both', help='Which data to propagate')
-    parser.add_argument('--proteins', help='Optional protein list (one per line)')
-    parser.add_argument('--gaf', help='GAF file path (required for gaf or both)')
-    parser.add_argument('--pred_pattern', help='Glob for deepFRI CSVs (required for pred or both)')
+    parser.add_argument('--mode', choices=['gaf','pred','both'], default='both', help='Which data type to propagate')
+    parser.add_argument('--proteins', help='Optional protein list to include (one per line)')
+    parser.add_argument('--gaf', help='GAF file path)
+    parser.add_argument('--pred_pattern', help='Glob for deepFRI CSVs (like "data/*predictions.csv")')
     parser.add_argument('--score_cutoff', type=float, help='Optional score cutoff')
-    parser.add_argument('--id_from_filename', action='store_true', help='Use protein ID from filename instead of protein column')
+    parser.add_argument('--id_from_filename', action='store_true', help='Use protein ID from filename instead of the "protein" column in the csv')
     parser.add_argument('--obo', required=True, help='GO OBO file path')
     parser.add_argument('--ic', help='Optional IC CSV with [go_term,IC]')
     parser.add_argument('--output_gaf', help='Output CSV for propagated GAF')
